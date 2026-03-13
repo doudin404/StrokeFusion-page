@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+
+<meta name="description" content="StrokeFusion: Vector Sketch Generation via Joint Stroke-UDF Encoding and Latent Sequence Diffusion. A two-stage framework for high-fidelity vector sketch generation.">
+
+<meta property="og:title" content="StrokeFusion: Vector Sketch Generation"/>
+<meta property="og:description" content="StrokeFusion proposes a dual-modal sketch feature learning network and a stroke-level latent diffusion model for structural and semantic vector sketch generation."/>
+<meta property="og:url" content="https://github.com/doudin404/StrokeFusion"/>
+<meta property="og:image" content="static/images/figure2_teaser.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+
+<meta name="twitter:title" content="StrokeFusion: Vector Sketch Generation">
+<meta name="twitter:description" content="A two-stage framework for vector sketch generation using Joint Stroke-UDF Encoding and Latent Sequence Diffusion.">
+<meta name="twitter:image" content="static/images/figure2_teaser.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<meta name="keywords" content="Vector sketch generation, StrokeFusion, Latent sequence diffusion, Joint Stroke-UDF encoding, AAAI 2026, Computer graphics, AI">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>StrokeFusion</title>
+<link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+<link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+<link rel="stylesheet" href="static/css/bulma.min.css">
+<link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+<link rel="stylesheet" href="static/css/bulma-slider.min.css">
+<link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+<link rel="stylesheet" href="static/css/index.css">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+<script defer src="static/js/fontawesome.all.min.js"></script>
+<script src="static/js/bulma-carousel.min.js"></script>
+<script src="static/js/bulma-slider.min.js"></script>
+<script src="static/js/index.js"></script>
+
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+    });
+  </script>
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+</head>
+
+<body>
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+
+          <h1 class="title is-1 publication-title">
+            StrokeFusion: Vector Sketch Generation via Joint Stroke-UDF Encoding and Latent Sequence Diffusion
+          </h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              Jin Zhou,</span>
+            <span class="author-block">
+              Yi Zhou,</span>
+            <span class="author-block">
+              Hongliang Yang,</span>
+            <span class="author-block">
+              <a href="https://pengfeixu.com/" target="_blank">Pengfei Xu</a>*,</span>
+            <span class="author-block">
+              Hui Huang
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">CSSE, Shenzhen University<br>AAAI 2026</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2503.23752" target="_blank"
+                class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper (arXiv)</span>
+                </a>
+              </span>
+
+              <span class="link-block">
+                <a href="https://github.com/doudin404/StrokeFusion" target="_blank"
+                class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                </a>
+              </span>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <img src="static/images/fig_diff_progress.png" alt="StrokeFusion Generation Process" style="width: 100%; height: auto;"/>
+      <h2 class="subtitle has-text-justified" style="margin-top: 20px;">
+        <strong>Figure 1: Two examples of the generation process in StrokeFusion.</strong> From left to right, the noise level progressively decreases. At each timestep, only strokes with presence confidence $\hat{v}_i > 0$ are visualized.
+      </h2>
+    </div>
+  </div>
+</section>
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+          In the field of sketch generation, raster-format-trained models often produce non-stroke artifacts, while vector-format-trained models typically lack a holistic understanding of sketches, resulting in compromised recognizability. Moreover, existing methods struggle to extract common features from similar elements (e.g., animal eyes) that appear at varying positions across sketches. To address these challenges, we propose <strong>StrokeFusion</strong>, a two-stage framework for vector sketch generation. It contains a dual-modal sketch feature learning network that maps strokes into a high-quality latent space. This network decomposes sketches into normalized strokes and jointly encodes stroke sequences with Unsigned Distance Function (UDF) maps, representing sketches as sets of stroke feature vectors. Building upon this representation, our framework exploits a stroke-level latent diffusion model that simultaneously adjusts stroke position, scale, and trajectory during generation. This enables high-fidelity stroke generation while supporting stroke interpolation editing. Extensive experiments across multiple sketch datasets demonstrate that our framework outperforms state-of-the-art techniques, validating its effectiveness in preserving structural integrity and semantic features.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Overview of StrokeFusion Framework</h2>
+    <figure>
+      <img src="static/images/pipeline.png" alt="Overview of StrokeFusion pipeline" style="width: 100%; height: auto;" />
+      <figcaption style="margin-top: 15px; text-align: justify;">
+        <strong>Figure 2:</strong> The proposed <strong>StrokeFusion</strong> framework comprises two core components: <br>
+        <strong>1) Dual-Modal Stroke Encoding:</strong> Each stroke $s$ is processed through parallel encoding paths - a transformer-based sequence encoder handles geometric coordinates while a CNN processes the stroke distance field $I_n$. These modalities are fused into joint features $f$, trained via symmetric decoder networks that reconstruct both the original stroke ($s$) and distance field ($I_n$); <br>
+        <strong>2) Sketch Diffusion Generation:</strong> All normalized strokes are encoded into latent vectors $z_i$, augmented with bounding box parameters $b^i = [x^i, y^i, w^i, h^i]$ and presence flags $v^i \in \{-1, 1\}$. The diffusion model learns the distribution of stroke sequences $\{z_1, ..., z_N\}$ through $T$-step denoising training. During generation, the denoiser progressively refines noisy latents via reverse diffusion, with valid strokes ($v^i = 1$) being decoded through inverse normalization of $\hat{b}^i$ to reconstruct the final sketch. The architecture maintains permutation invariance through order-agnostic sequence processing.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Qualitative Comparison on QuickDraw</h2>
+    <figure>
+      <img src="static/images/exp-qualitative-quickdraw.png" alt="Qualitative comparison on QuickDraw" style="width: 100%; height: auto;" />
+      <figcaption style="margin-top: 15px; text-align: justify;">
+        <strong>Figure 3:</strong> Qualitative comparison of sketches generated by our method and the baselines across different categories in QuickDraw. Our method consistently produces more structurally coherent sketches with richer local details, particularly in complex, multi-stroke scenarios.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Results on Complex Datasets</h2>
+    <figure>
+      <img src="static/images/exp-qualitative-other.png" alt="Generation results on complex datasets" style="width: 100%; height: auto;" />
+      <figcaption style="margin-top: 15px; text-align: justify;">
+        <strong>Figure 4:</strong> Qualitative generation results on several more complex datasets. Dataset names and representative examples are shown below each column for comparison.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section">
+<div class="table-container">
+  <table class="table is-fullwidth is-hoverable has-text-centered" style="margin-bottom: 2rem;">
+    <thead>
+      <tr>
+        <th rowspan="2" style="vertical-align: middle;">Method</th>
+        <th colspan="3" style="border-bottom: 1px solid #dbdbdb;">&lt; 4 strokes</th>
+        <th colspan="3" style="border-bottom: 1px solid #dbdbdb;">&lt; 8 strokes</th>
+        <th colspan="3" style="border-bottom: 1px solid #dbdbdb;">$\geq$ 8 strokes</th>
+      </tr>
+      <tr>
+        <th>FID$\downarrow$</th> <th>Prec$\uparrow$</th> <th>Rec$\uparrow$</th>
+        <th>FID$\downarrow$</th> <th>Prec$\uparrow$</th> <th>Rec$\uparrow$</th>
+        <th>FID$\downarrow$</th> <th>Prec$\uparrow$</th> <th>Rec$\uparrow$</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left;">SketchRNN</td>
+        <td>31.61</td> <td>0.49</td> <td>0.45</td>
+        <td>36.98</td> <td>0.58</td> <td>0.44</td>
+        <td>40.67</td> <td>0.55</td> <td>0.40</td>
+      </tr>
+      <tr>
+        <td style="text-align: left;">SketchKnitter</td>
+        <td>23.17</td> <td>0.52</td> <td>0.48</td>
+        <td>27.07</td> <td>0.57</td> <td><u>0.45</u></td>
+        <td>35.64</td> <td>0.54</td> <td>0.40</td>
+      </tr>
+      <tr>
+        <td style="text-align: left;">ChiroDiff</td>
+        <td><strong>17.17</strong></td> <td><u>0.61</u></td> <td><u>0.50</u></td>
+        <td><u>23.84</u></td> <td><u>0.63</u></td> <td><u>0.45</u></td>
+        <td><u>27.78</u></td> <td><u>0.62</u></td> <td><u>0.42</u></td>
+      </tr>
+      <tr style="border-bottom: 2px solid #dbdbdb;">
+        <td style="text-align: left;"><strong>StrokeFusion</strong></td>
+        <td><u>19.53</u></td> <td><strong>0.71</strong></td> <td><strong>0.58</strong></td>
+        <td><strong>18.99</strong></td> <td><strong>0.69</strong></td> <td><strong>0.61</strong></td>
+        <td><strong>17.76</strong></td> <td><strong>0.71</strong></td> <td><strong>0.58</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="has-text-justified" style="margin-bottom: 3rem; font-size: 0.9em;">
+    <strong>Table 1:</strong> Performance comparison across different stroke-count categories in QuickDraw. Classes are grouped by average stroke counts: low-stroke (&lt; 4), medium-stroke (&lt; 8), and high-stroke ($\geq$ 8). Bold and underlined values indicate the best and second-best performances, respectively.
+  </p>
+
+  <table class="table is-fullwidth is-hoverable has-text-centered">
+    <thead>
+      <tr>
+        <th rowspan="2" style="vertical-align: middle;">Method</th>
+        <th colspan="3" style="border-bottom: 1px solid #dbdbdb;">Creative Birds</th>
+        <th colspan="3" style="border-bottom: 1px solid #dbdbdb;">Creative Creatures</th>
+        <th colspan="3" style="border-bottom: 1px solid #dbdbdb;">FaceX</th>
+        <th colspan="3" style="border-bottom: 1px solid #dbdbdb;">TU Berlin</th>
+      </tr>
+      <tr>
+        <th>FID$\downarrow$</th> <th>Prec$\uparrow$</th> <th>Rec$\uparrow$</th>
+        <th>FID$\downarrow$</th> <th>Prec$\uparrow$</th> <th>Rec$\uparrow$</th>
+        <th>FID$\downarrow$</th> <th>Prec$\uparrow$</th> <th>Rec$\uparrow$</th>
+        <th>FID$\downarrow$</th> <th>Prec$\uparrow$</th> <th>Rec$\uparrow$</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="text-align: left;">SketchRNN</td>
+        <td>59.85</td> <td>0.26</td> <td>0.28</td>
+        <td>121.02</td> <td>0.44</td> <td>0.26</td>
+        <td>155.02</td> <td>0.01</td> <td>0.31</td>
+        <td><u>98.01</u></td> <td><strong>0.73</strong></td> <td>0.20</td>
+      </tr>
+      <tr>
+        <td style="text-align: left;">SketchKnitter</td>
+        <td>59.16</td> <td>0.25</td> <td>0.22</td>
+        <td>110.46</td> <td>0.42</td> <td>0.27</td>
+        <td>156.97</td> <td><u>0.08</u></td> <td><u>0.34</u></td>
+        <td>99.46</td> <td>0.56</td> <td>0.22</td>
+      </tr>
+      <tr>
+        <td style="text-align: left;">ChiroDiff</td>
+        <td>60.10</td> <td><u>0.56</u></td> <td>0.18</td>
+        <td>36.66</td> <td><strong>0.59</strong></td> <td>0.27</td>
+        <td><u>99.33</u></td> <td>0.06</td> <td>0.30</td>
+        <td>98.30</td> <td>0.53</td> <td><u>0.25</u></td>
+      </tr>
+      <tr>
+        <td style="text-align: left;">Doodleformer</td>
+        <td><u>27.32</u></td> <td><strong>0.67</strong></td> <td><strong>0.55</strong></td>
+        <td><u>33.46</u></td> <td>0.52</td> <td><strong>0.69</strong></td>
+        <td>-</td> <td>-</td> <td>-</td>
+        <td>-</td> <td>-</td> <td>-</td>
+      </tr>
+      <tr style="border-bottom: 2px solid #dbdbdb;">
+        <td style="text-align: left;"><strong>StrokeFusion</strong></td>
+        <td><strong>26.19</strong></td> <td><u>0.56</u></td> <td><u>0.30</u></td>
+        <td><strong>19.41</strong></td> <td><u>0.58</u></td> <td><u>0.32</u></td>
+        <td><strong>7.27</strong></td> <td><strong>0.76</strong></td> <td><strong>0.89</strong></td>
+        <td><strong>33.68</strong></td> <td><u>0.66</u></td> <td><strong>0.48</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="has-text-justified" style="font-size: 0.9em;">
+    <strong>Table 2:</strong> Performance comparison on additional datasets. Our method achieves consistently better FID, Precision, and Recall across all datasets. Bold and underlined values indicate the best and second-best performances, respectively.
+  </p>
+</div>
+</section>
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX Citation</h2>
+    <pre><code>
+@inproceedings{zhou2026strokefusion,
+  title={StrokeFusion: Vector Sketch Generation via Joint Stroke-UDF Encoding and Latent Sequence Diffusion},
+  author={Zhou, Jin and Zhou, Yi and Yang, Hongliang and Xu, Pengfei and Huang, Hui},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  year={2026}
+}
+    </code></pre>
+  </div>
+</section>
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
